@@ -453,6 +453,13 @@ static void genMultiplyByTwoBitMultiplier(CompilationUnit *cUnit,
     }
 }
 
+static void genMultiplyByShiftAndReverseSubtract(CompilationUnit *cUnit,
+        RegLocation rlSrc, RegLocation rlResult, int lit)
+{
+    newLIR4(cUnit, kThumb2RsbRRR, rlResult.lowReg, rlSrc.lowReg, rlSrc.lowReg,
+            encodeShift(kArmLsl, lit));
+}
+
 /*
  * Generate array load.
  * For wide array access using scale, combine add with shift.

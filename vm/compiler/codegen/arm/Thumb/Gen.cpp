@@ -275,6 +275,14 @@ static void genMultiplyByTwoBitMultiplier(CompilationUnit *cUnit,
     opRegRegImm(cUnit, kOpMul, rlResult.lowReg, rlSrc.lowReg, lit);
 }
 
+static void genMultiplyByShiftAndReverseSubtract(CompilationUnit *cUnit,
+        RegLocation rlSrc, RegLocation rlResult, int lit)
+{
+    int tReg = dvmCompilerAllocTemp(cUnit);
+    opRegRegImm(cUnit, kOpLsl, tReg, rlSrc.lowReg, lowestSetBit(lit + 1));
+    opRegRegReg(cUnit, kOpSub, rlResult.lowReg, tReg, rlSrc.lowReg);
+}
+
 /*
  * Generate array load
  */

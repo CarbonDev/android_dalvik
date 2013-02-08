@@ -1970,9 +1970,6 @@ static bool handleFmt21t(CompilationUnit *cUnit, MIR *mir, BasicBlock *bb,
     RegLocation rlSrc = dvmCompilerGetSrc(cUnit, mir, 0);
     rlSrc = loadValue(cUnit, rlSrc, kCoreReg);
 
-    opRegImm(cUnit, kOpCmp, rlSrc.lowReg, 0);
-
-//TUNING: break this out to allow use of Thumb2 CB[N]Z
     switch (dalvikOpcode) {
         case OP_IF_EQZ:
             cond = kArmCondEq;
@@ -1997,7 +1994,8 @@ static bool handleFmt21t(CompilationUnit *cUnit, MIR *mir, BasicBlock *bb,
             ALOGE("Unexpected opcode (%d) for Fmt21t", dalvikOpcode);
             dvmCompilerAbort(cUnit);
     }
-    genConditionalBranch(cUnit, cond, &labelList[bb->taken->id]);
+    ArmLIR* branch = genCmpImmBranch(cUnit, cond, rlSrc.lowReg, 0);
+    branch->generic.target = (LIR*)&labelList[bb->taken->id];
     /* This mostly likely will be optimized away in a later phase */
     genUnconditionalBranch(cUnit, &labelList[bb->fallThrough->id]);
     return false;

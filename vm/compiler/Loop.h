@@ -39,6 +39,7 @@ typedef struct LoopAnalysis {
     LIR *branchToPCR;                   // branch over to the PCR cell
     bool bodyIsClean;                   // loop body cannot throw any exceptions
     bool suppressSuspend;               // loop body should suppress suspend check
+    bool branchesAdded;                 // Body and PCR branch added to LIR output
 } LoopAnalysis;
 
 bool dvmCompilerFilterLoopBlocks(CompilationUnit *cUnit);

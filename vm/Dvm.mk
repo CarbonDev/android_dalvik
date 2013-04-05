@@ -76,6 +76,10 @@ else  # !dvm_make_debug_vm
   #LOCAL_CFLAGS += -UNDEBUG -DDEBUG=1 -DLOG_NDEBUG=1 -DWITH_DALVIK_ASSERT
 endif  # !dvm_make_debug_vm
 
+ifneq ($(strip $(DALVIK_LOG_GC)),)
+  LOCAL_CFLAGS += -DDALVIK_LOG_GC
+endif
+
 # bug hunting: checksum and verify interpreted stack when making JNI calls
 #LOCAL_CFLAGS += -DWITH_JNI_STACK_CHECK
 

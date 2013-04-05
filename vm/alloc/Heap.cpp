@@ -446,12 +446,17 @@ static void verifyRootsAndHeap()
 void dvmCollectGarbageInternal(const GcSpec* spec)
 {
     GcHeap *gcHeap = gDvm.gcHeap;
-    u4 gcEnd = 0;
+#ifdef DALVIK_LOG_GC
+/*  Commented out because in gcc 4.7 werror-unusedVarible is running
+ *  before the ifdef breaking the build
+ *  u4 gcEnd = 0;
+ *  size_t percentFree;
+ */
+#endif
     u4 rootStart = 0 , rootEnd = 0;
     u4 dirtyStart = 0, dirtyEnd = 0;
     size_t numObjectsFreed, numBytesFreed;
     size_t currAllocated, currFootprint;
-    size_t percentFree;
     int oldThreadPriority = INT_MAX;
 
     /* The heap lock must be held.
@@ -642,9 +647,9 @@ void dvmCollectGarbageInternal(const GcSpec* spec)
      * Move queue of pending references back into Java.
      */
     dvmEnqueueClearedReferences(&gDvm.gcHeap->clearedReferences);
-
-    gcEnd = dvmGetRelativeTimeMsec();
-    percentFree = 100 - (size_t)(100.0f * (float)currAllocated / currFootprint);
+#ifdef DALVIK_LOG_GC
+    u4 gcEnd = dvmGetRelativeTimeMsec();
+    size_t percentFree = 100 - (size_t)(100.0f * (float)currAllocated / currFootprint);
     if (!spec->isConcurrent) {
         u4 markSweepTime = dirtyEnd - rootStart;
         u4 gcTime = gcEnd - rootStart;
@@ -673,6 +678,7 @@ void dvmCollectGarbageInternal(const GcSpec* spec)
                 rootTime, dirtyTime, gcTime);
         }
     }
+#endif
     if (gcHeap->ddmHpifWhen != 0) {
         LOGD_HEAP("Sending VM heap info to DDM");
         dvmDdmSendHeapInfo(gcHeap->ddmHpifWhen, false);
@@ -712,17 +718,21 @@ bool dvmWaitForConcurrentGcToComplete()
     bool waited = gDvm.gcHeap->gcRunning;
     Thread *self = dvmThreadSelf();
     assert(self != NULL);
+#ifdef DALVIK_LOG_GC
     u4 start = dvmGetRelativeTimeMsec();
+#endif
     while (gDvm.gcHeap->gcRunning) {
         ThreadStatus oldStatus = dvmChangeStatus(self, THREAD_VMWAIT);
         dvmWaitCond(&gDvm.gcHeapCond, &gDvm.gcHeapLock);
         dvmChangeStatus(self, oldStatus);
     }
+#ifdef DALVIK_LOG_GC
     u4 end = dvmGetRelativeTimeMsec();
     if(DEBUG) {
         if (end - start > 0) {
             ALOGD("WAIT_FOR_CONCURRENT_GC blocked %ums", end - start);
         }
     }
+#endif
     return waited;
 }
